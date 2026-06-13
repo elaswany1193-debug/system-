@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ClearDust Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --g:#0B6B4E;--gm:#18A374;--gl:#E0F5EE;
+  --a:#E07B00;--al:#FFF3DC;
+  --c:#C0392B;--cl:#FDEDEC;
+  --b:#1A5F9E;--bl:#EAF2FB;
+  --pur:#6B21A8;--purl:#F3E8FF;
+  --dk:#111827;--md:#6B7280;--lt:#F3F4F6;--wh:#fff;
+  --sh:0 2px 12px rgba(0,0,0,0.08);
+  --sh2:0 8px 28px rgba(0,0,0,0.14);
+  --r:14px;--rs:9px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Cairo',sans-serif;background:#ECEAE5;color:var(--dk);min-height:100vh}
+
+/* LOGIN */
+#loginScreen{position:fixed;inset:0;background:linear-gradient(155deg,#0B6B4E,#042B22 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;padding:20px}
+.ll{font-size:52px;margin-bottom:6px}
+.lb{font-size:26px;font-weight:900;color:#fff;letter-spacing:-1px;margin-bottom:2px}
+.ls{font-size:12px;color:rgba(255,255,255,0.45);margin-bottom:36px}
+.lcard{background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.15);backdrop-filter:blur(10px);border-radius:20px;padding:24px;width:100%;max-width:340px}
+.llbl{font-size:12px;color:rgba(255,255,255,0.65);font-weight:700;margin-bottom:7px;display:block}
+.lsel{width:100%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:11px 14px;color:#fff;font-family:'Cairo',sans-serif;font-size:14px;margin-bottom:16px;outline:none;cursor:pointer}
+.lsel option{color:#111;background:#fff}
+.pdots{display:flex;gap:14px;justify-content:center;margin-bottom:18px}
+.pdot{width:13px;height:13px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);transition:all 0.18s}
+.pdot.on{background:#fff;border-color:#fff;box-shadow:0 0 8px rgba(255,255,255,0.5)}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:16px}
+.pk{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:11px;padding:15px;font-size:19px;font-weight:700;color:#fff;cursor:pointer;text-align:center;transition:all 0.12s;font-family:'Cairo',sans-serif;user-select:none}
+.pk:active{background:rgba(255,255,255,0.28);transform:scale(0.94)}
+.lerr{color:#FF9090;font-size:12px;text-align:center;min-height:18px;margin-top:6px}
+.lhint{color:rgba(255,255,255,0.3);font-size:11px;text-align:center;margin-top:12px}
+
+/* TOPBAR */
+.topbar{background:var(--g);color:#fff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,0.25)}
+.tl{display:flex;align-items:center;gap:10px}
+.ttitle{font-size:15px;font-weight:900;line-height:1.2}
+.tuser{font-size:11px;opacity:0.6}
+.tr{display:flex;gap:5px}
+.tbtn{background:rgba(255,255,255,0.15);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:background 0.15s}
+.tbtn:active{background:rgba(255,255,255,0.3)}
+
+/* ROLE BANNER */
+.rbanner{padding:7px 14px;font-size:12px;font-weight:700;text-align:center;display:none}
+.rbanner.admin{background:var(--gl);color:var(--g);display:block}
+.rbanner.del{background:var(--bl);color:var(--b);display:block}
+
+/* NAV */
+.nav{background:#fff;display:flex;border-bottom:2px solid #e5e7eb;position:sticky;top:56px;z-index:99;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.ntab{flex:1;min-width:60px;padding:8px 4px;text-align:center;cursor:pointer;font-size:10px;font-weight:700;color:var(--md);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.18s;white-space:nowrap}
+.ntab .ni{font-size:16px;display:block;margin-bottom:1px}
+.ntab.active{color:var(--g);border-bottom-color:var(--g)}
+
+/* PAGES */
+.page{display:none;padding:12px;animation:fi 0.2s ease}
+.page.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px}
+.stat{background:#fff;border-radius:var(--r);padding:13px 10px;box-shadow:var(--sh);text-align:center}
+.sv{font-size:28px;font-weight:900;line-height:1}
+.sl{font-size:10px;color:var(--md);margin-top:3px}
+.stat.g{border-top:3px solid var(--g)}.stat.g .sv{color:var(--g)}
+.stat.a{border-top:3px solid var(--a)}.stat.a .sv{color:var(--a)}
+.stat.c{border-top:3px solid var(--c)}.stat.c .sv{color:var(--c)}
+.stat.b{border-top:3px solid var(--b)}.stat.b .sv{color:var(--b)}
+.stat.pur{border-top:3px solid var(--pur)}.stat.pur .sv{color:var(--pur)}
+
+/* SEARCH */
+.sbar{background:#fff;border-radius:var(--r);padding:9px 13px;display:flex;align-items:center;gap:8px;margin-bottom:9px;box-shadow:var(--sh)}
+.sbar input{border:none;outline:none;flex:1;font-family:'Cairo',sans-serif;font-size:13px;direction:rtl;background:none}
+
+/* CHIPS */
+.chips{display:flex;gap:6px;margin-bottom:11px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{background:#fff;border:1.5px solid #ddd;border-radius:20px;padding:5px 12px;font-size:11px;font-family:'Cairo',sans-serif;cursor:pointer;white-space:nowrap;transition:all 0.14s;color:var(--md);font-weight:600}
+.chip.active{background:var(--g);border-color:var(--g);color:#fff}
+
+/* CLIENT CARD */
+.cc{background:#fff;border-radius:var(--r);margin-bottom:9px;box-shadow:var(--sh);overflow:hidden}
+.cc-top{padding:11px 13px 8px;cursor:pointer}
+.cc-name{font-size:14px;font-weight:700;display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.cc-sub{font-size:11px;color:var(--md);margin-top:3px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.cc-addr{font-size:11px;color:#555;margin-top:4px;line-height:1.5}
+.cc-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+.cc-actions{display:flex;border-top:1px solid #f0f0f0}
+.ca{flex:1;padding:9px 4px;text-align:center;border:none;background:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:10px;color:var(--md);display:flex;flex-direction:column;align-items:center;gap:2px;transition:background 0.12s}
+.ca:active{background:var(--lt)}
+.ci{font-size:16px}
+.ca.red{color:var(--c)}
+.ca.green{color:var(--g)}
+
+/* BADGES */
+.vb{font-size:10px;font-weight:800;padding:3px 8px;border-radius:11px;white-space:nowrap}
+.vb-today{background:#FF6F00;color:#fff}
+.vb-tmr{background:var(--a);color:#fff}
+.vb-soon{background:var(--bl);color:var(--b)}
+.vb-late{background:var(--c);color:#fff}
+.vb-ok{background:var(--gl);color:var(--g)}
+.pb{font-size:10px;padding:2px 7px;border-radius:9px;font-weight:600}
+.pb-g{background:var(--gl);color:var(--g)}
+.pb-b{background:var(--bl);color:var(--b)}
+.pb-a{background:var(--al);color:#7a4400}
+.pb-c{background:var(--cl);color:var(--c)}
+.pb-d{background:#f0f0f0;color:#555}
+
+/* EXPANDED */
+.cc-exp{display:none;padding:10px 13px;background:#FAFAF9;border-top:1px solid #eee}
+.cc-exp.open{display:block}
+.ptable{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+.ptable th{background:var(--g);color:#fff;padding:5px 8px;text-align:right;font-size:11px}
+.ptable td{padding:5px 8px;border-bottom:1px solid #eee}
+.ptable tr:nth-child(even) td{background:#F5FBF8}
+
+/* CANCELLED LIST */
+.cancel-card{background:#fff;border-radius:var(--rs);padding:11px 13px;margin-bottom:8px;box-shadow:var(--sh);border-right:4px solid var(--c)}
+.cancel-name{font-size:13px;font-weight:700}
+.cancel-meta{font-size:11px;color:var(--md);margin-top:2px}
+.cancel-reason{font-size:12px;color:var(--c);margin-top:4px;font-weight:600}
+
+/* ROUTE */
+.route-hd{background:linear-gradient(135deg,var(--g),var(--gm));border-radius:var(--r);padding:14px;margin-bottom:12px;color:#fff}
+.route-hd h3{font-size:15px;font-weight:900}
+.route-hd p{font-size:12px;opacity:0.7;margin-top:2px}
+.ri{background:#fff;border-radius:var(--rs);margin-bottom:8px;padding:11px 13px;box-shadow:var(--sh);display:flex;gap:11px;align-items:flex-start;border-right:4px solid var(--g)}
+.rnum{background:var(--g);color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0}
+.rinfo{flex:1}
+.rname{font-size:13px;font-weight:700}
+.raddr{font-size:11px;color:var(--md);margin-top:2px;line-height:1.4}
+.racts{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.ract{padding:5px 11px;border-radius:20px;border:none;font-family:'Cairo',sans-serif;font-size:11px;cursor:pointer;font-weight:600}
+.ract-g{background:var(--gl);color:var(--g)}
+.ract-b{background:var(--bl);color:var(--b)}
+.ract-wa{background:#25D366;color:#fff}
+.ract-r{background:var(--cl);color:var(--c)}
+
+/* DELEGATE CARD */
+.del-card{background:#fff;border-radius:var(--r);padding:14px;margin-bottom:11px;box-shadow:var(--sh)}
+.del-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:9px}
+.del-name{font-size:16px;font-weight:900}
+.del-phone{font-size:11px;color:var(--md);margin-top:1px}
+.del-pin{font-size:11px;color:var(--md)}
+.del-regs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:11px}
+.reg-tag{background:var(--gl);color:var(--g);padding:3px 9px;border-radius:11px;font-size:11px;font-weight:700}
+.del-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.ds{text-align:center;background:var(--lt);border-radius:8px;padding:7px}
+.dv{font-size:18px;font-weight:900;color:var(--g)}
+.dl{font-size:9px;color:var(--md)}
+
+/* MAP */
+#map{height:calc(100vh - 180px);border-radius:var(--r);overflow:hidden}
+.map-bar{display:flex;gap:6px;margin-bottom:9px;overflow-x:auto;scrollbar-width:none}
+.map-bar::-webkit-scrollbar{display:none}
+.mbtn{background:#fff;border:1.5px solid #ddd;border-radius:20px;padding:6px 13px;font-family:'Cairo',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.14s}
+.mbtn.active{background:var(--g);border-color:var(--g);color:#fff}
+
+/* ARCHIVE */
+.arc-item{background:#fff;border-radius:var(--rs);padding:11px 13px;margin-bottom:7px;box-shadow:var(--sh)}
+
+/* MODAL */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1000;display:none;align-items:flex-end}
+.ov.open{display:flex}
+.modal{background:#fff;width:100%;border-radius:20px 20px 0 0;padding:18px 18px 30px;max-height:88vh;overflow-y:auto;animation:su 0.26s ease}
+@keyframes su{from{transform:translateY(100%)}to{transform:none}}
+.mhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #eee}
+.mhd h3{font-size:15px;font-weight:900}
+.mclose{cursor:pointer;color:var(--md);font-size:20px;background:none;border:none;padding:4px}
+.flbl{font-size:12px;font-weight:700;color:#444;display:block;margin-bottom:5px;margin-top:12px}
+.flbl:first-child{margin-top:0}
+.finp{width:100%;border:1.5px solid #ddd;border-radius:9px;padding:10px 12px;font-family:'Cairo',sans-serif;font-size:13px;direction:rtl;outline:none}
+.finp:focus{border-color:var(--g)}
+.fsel{width:100%;border:1.5px solid #ddd;border-radius:9px;padding:10px 12px;font-family:'Cairo',sans-serif;font-size:13px;direction:rtl;outline:none;background:#fff;cursor:pointer}
+.fsel:focus{border-color:var(--g)}
+.sbtn-group{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.sbtn{padding:7px 12px;border-radius:20px;border:1.5px solid #ddd;background:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:12px;font-weight:600;transition:all 0.13s}
+.sbtn.s-done{background:var(--g);border-color:var(--g);color:#fff}
+.sbtn.s-delayed{background:var(--a);border-color:var(--a);color:#fff}
+.sbtn.s-cancel{background:var(--c);border-color:var(--c);color:#fff}
+.sbtn.s-partial{background:var(--b);border-color:var(--b);color:#fff}
+.sbtn.s-absent{background:#6B7280;border-color:#6B7280;color:#fff}
+.sbtn.s-pay{background:var(--g);border-color:var(--g);color:#fff}
+.save-btn{width:100%;background:var(--g);color:#fff;border:none;border-radius:10px;padding:13px;font-family:'Cairo',sans-serif;font-size:15px;font-weight:900;cursor:pointer;margin-top:14px}
+.save-btn:active{background:#085a3e}
+.del-save-btn{width:100%;background:var(--c);color:#fff;border:none;border-radius:10px;padding:10px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px}
+.reg-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:4px}
+.rcbl{display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;background:var(--lt);padding:7px 10px;border-radius:8px;border:1.5px solid transparent;transition:all 0.13s;font-weight:600}
+.rcbl.on{background:var(--gl);border-color:var(--g);color:var(--g)}
+.rcbl input{display:none}
+
+/* LOCATION EDIT */
+.loc-item{background:#fff;border-radius:var(--rs);padding:10px 13px;margin-bottom:7px;box-shadow:var(--sh);display:flex;align-items:center;gap:10px}
+.loc-name{flex:1;font-size:13px;font-weight:600}
+.loc-coords{font-size:11px;color:var(--md)}
+.loc-edit-btn{background:var(--bl);color:var(--b);border:none;border-radius:8px;padding:5px 11px;font-family:'Cairo',sans-serif;font-size:11px;font-weight:700;cursor:pointer}
+
+/* DELEGATE LIVE MAP */
+#delMap{height:calc(100vh - 220px);border-radius:var(--r);overflow:hidden}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:11px 20px;border-radius:40px;font-size:13px;font-weight:700;z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.3)}
+
+/* SECTION HEADER */
+.sec-hd{font-size:13px;font-weight:900;color:var(--g);margin-bottom:9px;display:flex;justify-content:space-between;align-items:center}
+.sec-count{font-size:11px;color:var(--md);font-weight:600}
+
+/* ADD CLIENT FAB */
+.fab{position:fixed;bottom:24px;left:20px;width:52px;height:52px;background:var(--g);color:#fff;border:none;border-radius:50%;font-size:24px;cursor:pointer;box-shadow:0 4px 16px rgba(11,107,78,0.4);z-index:90;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.fab:active{transform:scale(0.93)}
+
+/* LIVE TRACKING DOT */
+.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.3)}}
+
+.empty{text-align:center;padding:36px 20px;color:var(--md)}
+.ei{font-size:40px;margin-bottom:9px}
+.empty p{font-size:13px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loaderScreen" style="display:none;position:fixed;inset:0;background:linear-gradient(155deg,#0B6B4E,#042B22 70%);z-index:99999;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+  <div style="font-size:52px">🧹</div>
+  <div style="font-size:18px;font-weight:900;color:#fff">ClearDust Pro</div>
+  <div style="width:200px;height:4px;background:rgba(255,255,255,0.2);border-radius:4px;overflow:hidden">
+    <div style="height:100%;background:#fff;border-radius:4px;animation:ld 1.5s ease-in-out infinite" id="ldBar"></div>
+  </div>
+  <div style="font-size:13px;color:rgba(255,255,255,0.6)">جاري تحميل البيانات...</div>
+</div>
+<style>@keyframes ld{0%{width:0%;margin-right:100%}50%{width:60%;margin-right:20%}100%{width:0%;margin-right:0%}}</style>
+<div id="loginScreen">
+  <div class="ll">🧹</div>
+  <div class="lb">ClearDust Pro</div>
+  <div class="ls">نظام إدارة الزيارات</div>
+  <div class="lcard">
+    <label class="llbl">اختر المندوب</label>
+    <select class="lsel" id="loginUser" onchange="onUC()">
+      <option value="">— اختر —</option>
+    </select>
+    <label class="llbl">الـ PIN</label>
+    <div class="pdots" id="pdots">
+      <div class="pdot" id="d0"></div><div class="pdot" id="d1"></div>
+      <div class="pdot" id="d2"></div><div class="pdot" id="d3"></div>
+    </div>
+    <div class="pgrid">
+      <div class="pk" onclick="pp(1)">1</div><div class="pk" onclick="pp(2)">2</div><div class="pk" onclick="pp(3)">3</div>
+      <div class="pk" onclick="pp(4)">4</div><div class="pk" onclick="pp(5)">5</div><div class="pk" onclick="pp(6)">6</div>
+      <div class="pk" onclick="pp(7)">7</div><div class="pk" onclick="pp(8)">8</div><div class="pk" onclick="pp(9)">9</div>
+      <div class="pk" onclick="pp('C')" style="font-size:13px">مسح</div>
+      <div class="pk" onclick="pp(0)">0</div>
+      <div class="pk" onclick="doLogin()" style="background:rgba(24,163,116,0.35)">✓</div>
+    </div>
+    <div class="lerr" id="lerr"></div>
+    <div class="lhint">المدير: اختر "المدير" — PIN 0000</div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" style="display:none">
+
+<div class="topbar">
+  <div class="tl">
+    <span style="font-size:20px">🧹</span>
+    <div><div class="ttitle">ClearDust Pro</div><div class="tuser" id="topUser">—</div></div>
+  </div>
+  <div class="tr">
+    <button class="tbtn" onclick="showPage('liveMap',null);initLiveMap()" title="تتبع المناديب">📡</button>
+    <button class="tbtn" onclick="exportRpt()" title="تصدير">📤</button>
+    <button class="tbtn" onclick="manualSync()" title="مزامنة">🔄</button>
+    <button class="tbtn" onclick="doLogout()" title="خروج">🚪</button>
+  </div>
+</div>
+<div class="rbanner" id="rbanner"></div>
+
+<div class="nav">
+  <div class="ntab active" data-page="home" onclick="showPage('home',this)"><span class="ni">🏠</span>الرئيسية</div>
+  <div class="ntab" data-page="visits" onclick="showPage('visits',this)"><span class="ni">📋</span>العملاء</div>
+  <div class="ntab" data-page="cancelled" onclick="showPage('cancelled',this)"><span class="ni">❌</span>الكنسل</div>
+  <div class="ntab" data-page="route" onclick="showPage('route',this)"><span class="ni">🗺️</span>المسار</div>
+  <div class="ntab admin-only" data-page="delegates" onclick="showPage('delegates',this)"><span class="ni">👥</span>المناديب</div>
+  <div class="ntab admin-only" data-page="locations" onclick="showPage('locations',this)"><span class="ni">📍</span>اللوكيشن</div>
+  <div class="ntab" data-page="archive" onclick="showPage('archive',this)"><span class="ni">📁</span>الأرشيف</div>
+</div>
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div class="stats" id="stats"></div>
+  <div id="homeToday"></div>
+  <div id="homeOverdue"></div>
+</div>
+
+<!-- CLIENTS -->
+<div class="page" id="page-visits">
+  <div class="sbar">
+    <span>🔍</span>
+    <input type="text" id="srch" placeholder="ابحث بالاسم أو العنوان..." oninput="filterC()">
+    <span onclick="clearSrch()" style="cursor:pointer;color:var(--md);display:none;font-size:16px" id="xbtn">✕</span>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div style="font-size:11px;color:var(--md);margin-bottom:7px" id="cnt"></div>
+  <div id="clist"></div>
+</div>
+
+<!-- CANCELLED -->
+<div class="page" id="page-cancelled">
+  <div style="background:var(--cl);border-radius:var(--r);padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div style="font-size:14px;font-weight:900;color:var(--c)">❌ قائمة الكنسل</div>
+      <div style="font-size:11px;color:var(--c);margin-top:2px">العملاء الذين كنسلوا أو رجعوا</div>
+    </div>
+    <div id="cancelCount" style="font-size:26px;font-weight:900;color:var(--c)">0</div>
+  </div>
+  <div class="chips" id="cancelChips">
+    <div class="chip active" onclick="setCancelFilter('all',this)">الكل</div>
+    <div class="chip" onclick="setCancelFilter('cancel',this)">❌ كنسل</div>
+    <div class="chip" onclick="setCancelFilter('absent',this)">🚪 غياب</div>
+    <div class="chip" onclick="setCancelFilter('delayed',this)">🔄 مؤجل</div>
+  </div>
+  <div id="cancelList"></div>
+</div>
+
+<!-- ROUTE -->
+<div class="page" id="page-route">
+  <div class="route-hd">
+    <h3 id="routeTitle">📍 المسار الأمثل</h3>
+    <p id="routeSub">مرتب جغرافياً من أقرب لأبعد</p>
+  </div>
+  <div class="chips" id="routeChips">
+    <div class="chip active" onclick="setRouteFilter('urgent',this)">اليوم + الغد</div>
+    <div class="chip" onclick="setRouteFilter('today',this)">اليوم فقط</div>
+    <div class="chip" onclick="setRouteFilter('week',this)">الأسبوع</div>
+    <div class="chip" onclick="setRouteFilter('late',this)">⚠️ المتأخرين</div>
+  </div>
+  <div id="routeList"></div>
+</div>
+
+<!-- DELEGATES (admin) -->
+<div class="page" id="page-delegates">
+  <div id="delList"></div>
+  <button onclick="openAddDel()" style="width:100%;background:var(--gl);color:var(--g);border:2px dashed var(--gm);border-radius:var(--r);padding:13px;font-family:Cairo,sans-serif;font-size:14px;font-weight:900;cursor:pointer">+ إضافة مندوب</button>
+</div>
+
+<!-- LOCATIONS (admin) -->
+<div class="page" id="page-locations">
+  <div style="background:var(--bl);border-radius:var(--r);padding:12px 14px;margin-bottom:12px">
+    <div style="font-size:13px;font-weight:900;color:var(--b)">📍 تعديل إحداثيات المناطق</div>
+    <div style="font-size:11px;color:var(--b);margin-top:3px">اضغط على منطقة لتعديل موقعها على الخريطة</div>
+  </div>
+  <div id="locList"></div>
+</div>
+
+<!-- LIVE MAP (delegate tracking) -->
+<div class="page" id="page-liveMap">
+  <div style="background:#111;border-radius:var(--r);padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px">
+    <span class="live-dot"></span>
+    <div>
+      <div style="font-size:13px;font-weight:900;color:#fff">تتبع المناديب</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:1px" id="liveStatus">في انتظار البيانات...</div>
+    </div>
+  </div>
+  <div class="map-bar" id="liveMapBar"></div>
+  <div id="delMap"></div>
+</div>
+
+<!-- ARCHIVE -->
+<div class="page" id="page-archive">
+  <div class="sbar"><span>🔍</span><input type="text" id="arcSrch" placeholder="بحث..." oninput="filterArc()"></div>
+  <div id="arcList"></div>
+</div>
+
+<!-- FAB: Add Client -->
+<button class="fab" onclick="openAddClient()" title="إضافة عميل جديد" id="fab">+</button>
+
+</div><!-- /mainApp -->
+
+<!-- VISIT MODAL -->
+<div class="ov" id="visitOv">
+  <div class="modal">
+    <div class="mhd"><h3 id="vName">تسجيل زيارة</h3><button class="mclose" onclick="closeOv('visitOv')">✕</button></div>
+    <div style="font-size:12px;color:var(--md);margin-bottom:12px" id="vInfo"></div>
+    <label class="flbl">حالة الزيارة</label>
+    <div class="sbtn-group">
+      <button class="sbtn" onclick="pSt('done',this)">✅ تم التغيير</button>
+      <button class="sbtn" onclick="pSt('delayed',this)">🔄 مؤجل</button>
+      <button class="sbtn" onclick="pSt('cancel',this)">❌ كنسل</button>
+      <button class="sbtn" onclick="pSt('partial',this)">⚡ جزئي</button>
+      <button class="sbtn" onclick="pSt('absent',this)">🚪 العميل غايب</button>
+    </div>
+    <label class="flbl">سبب الكنسل / ملاحظة (للكنسل والغياب)</label>
+    <input type="text" class="finp" id="vReason" placeholder="مثلاً: رفض التجديد / سافر / ...">
+    <label class="flbl">طريقة التحصيل</label>
+    <div class="sbtn-group">
+      <button class="sbtn" onclick="pCo('cash',this)">💵 كاش</button>
+      <button class="sbtn" onclick="pCo('insta',this)">📱 إنستاباي</button>
+      <button class="sbtn" onclick="pCo('later',this)">⏰ آجل</button>
+      <button class="sbtn" onclick="pCo('none',this)">— لا يوجد</button>
+    </div>
+    <label class="flbl">المبلغ المحصَّل (جنيه)</label>
+    <input type="number" class="finp" id="vAmt" placeholder="0" style="margin-bottom:4px">
+    <label class="flbl">ملاحظات إضافية</label>
+    <textarea class="finp" id="vNotes" rows="2" style="resize:none"></textarea>
+    <button class="save-btn" onclick="saveVisit()">💾 حفظ الزيارة</button>
+  </div>
+</div>
+
+<!-- ADD/EDIT CLIENT MODAL -->
+<div class="ov" id="clientOv">
+  <div class="modal">
+    <div class="mhd"><h3 id="clientModalTitle">إضافة عميل جديد</h3><button class="mclose" onclick="closeOv('clientOv')">✕</button></div>
+    <label class="flbl">اسم العميل *</label>
+    <input type="text" class="finp" id="cName" placeholder="اسم العميل أو الشركة">
+    <label class="flbl">المنطقة *</label>
+    <select class="fsel" id="cRegion"></select>
+    <label class="flbl">رقم التليفون</label>
+    <input type="tel" class="finp" id="cPhone" placeholder="01xxxxxxxxx" style="direction:ltr">
+    <label class="flbl">العنوان</label>
+    <textarea class="finp" id="cAddr" rows="2" style="resize:none" placeholder="العنوان التفصيلي"></textarea>
+    <label class="flbl">مدة الإيجار</label>
+    <select class="fsel" id="cCycle">
+      <option value="7">7 أيام</option>
+      <option value="14">14 يوم</option>
+      <option value="28" selected>28 يوم</option>
+    </select>
+    <label class="flbl">تاريخ الزيارة القادمة</label>
+    <input type="date" class="finp" id="cDate" style="direction:ltr">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+      <div><label class="flbl">MOP</label><input type="text" class="finp" id="cMop" placeholder="مثلاً 2x s"></div>
+      <div><label class="flbl">MIT</label><input type="text" class="finp" id="cMit" placeholder="مثلاً 1x OV"></div>
+      <div><label class="flbl">HD1</label><input type="text" class="finp" id="cHd1" placeholder="شيش/شبابيك"></div>
+      <div><label class="flbl">HD2</label><input type="text" class="finp" id="cHd2" placeholder="أسقف"></div>
+      <div><label class="flbl">MOP36</label><input type="text" class="finp" id="cM36" placeholder="كبير"></div>
+      <div><label class="flbl">السعر (جنيه)</label><input type="number" class="finp" id="cPrice" placeholder="0"></div>
+    </div>
+    <label class="flbl">ملاحظات</label>
+    <input type="text" class="finp" id="cNote" placeholder="ملاحظات إضافية">
+    <button class="save-btn" onclick="saveClient()">💾 حفظ العميل</button>
+    <button class="del-save-btn" id="deleteClientBtn" onclick="deleteClient()" style="display:none">🗑️ حذف العميل</button>
+  </div>
+</div>
+
+<!-- DELEGATE MODAL -->
+<div class="ov" id="delOv">
+  <div class="modal">
+    <div class="mhd"><h3 id="delMTitle">إضافة مندوب</h3><button class="mclose" onclick="closeOv('delOv')">✕</button></div>
+    <label class="flbl">اسم المندوب *</label>
+    <input type="text" class="finp" id="dName" placeholder="الاسم الكامل">
+    <label class="flbl">رقم الهاتف</label>
+    <input type="tel" class="finp" id="dPhone" placeholder="01xxxxxxxxx" style="direction:ltr">
+    <label class="flbl">الـ PIN (4 أرقام) *</label>
+    <input type="number" class="finp" id="dPin" placeholder="مثلاً 1234" style="direction:ltr">
+    <label class="flbl">المناطق المسؤول عنها</label>
+    <div class="reg-grid" id="regGrid"></div>
+    <button class="save-btn" onclick="saveDel()">حفظ المندوب</button>
+    <button class="del-save-btn" id="delDelBtn" onclick="deleteDel()" style="display:none">🗑️ حذف المندوب</button>
+  </div>
+</div>
+
+<!-- LOCATION EDIT MODAL -->
+<div class="ov" id="locOv">
+  <div class="modal">
+    <div class="mhd"><h3 id="locName">تعديل لوكيشن</h3><button class="mclose" onclick="closeOv('locOv')">✕</button></div>
+    <div style="font-size:12px;color:var(--md);margin-bottom:12px">أدخل الإحداثيات من Google Maps (خط العرض، خط الطول)</div>
+    <label class="flbl">خط العرض (Latitude)</label>
+    <input type="number" class="finp" id="locLat" placeholder="30.0444" step="0.0001" style="direction:ltr">
+    <label class="flbl">خط الطول (Longitude)</label>
+    <input type="number" class="finp" id="locLng" placeholder="31.2357" step="0.0001" style="direction:ltr">
+    <div style="background:var(--bl);border-radius:8px;padding:10px;margin:10px 0;font-size:12px;color:var(--b)">
+      💡 كيف تحصل على الإحداثيات من Google Maps:<br>
+      1. افتح Google Maps<br>
+      2. ابحث عن المنطقة<br>
+      3. اضغط كليك يمين على المكان<br>
+      4. انسخ الأرقام الأولى (هي الإحداثيات)
+    </div>
+    <button class="save-btn" onclick="saveLoc()">💾 حفظ الإحداثيات</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// CLIENT DATA (from Google Sheets)
+// ═══════════════════════════════════════
+// الـ API URL يُحفظ في localStorage ويمكن تغييره من لوحة الإدارة
+let API_URL = localStorage.getItem('cd_api_url') || "https://script.google.com/macros/s/AKfycbx96ahqLtSJRIbvZ-BR6IS5_e6Gq9Fc4eop7KVGN-1KnBdYID07Gc6CMgtW0HfgPpOj/exec";
+let RAW_CLIENTS = [];
+
+const REGIONS=["اكتوبر","التجمع 1","التجمع 2","التجمع 3","التجمع 4","الشروق","المعادى","المقطم","الهرم+فيصل","حدائق الهرم","زايد","زهراء المعادى","شبرا+وسط البلد","شيرتون","عباس","مدينتى","مصرالجديدة","مكرم","مهندسين","واحات"];
+const DEL_COLORS=['#0B6B4E','#1A5F9E','#7B3200','#6A1B9A','#AD1457','#00695C','#E65100','#0D47A1'];
+
+const DEFAULT_COORDS={
+  "مدينتى":[30.1200,31.8000],"الشروق":[30.1400,31.7200],
+  "التجمع 1":[30.0200,31.4300],"التجمع 2":[30.0000,31.5000],
+  "التجمع 3":[29.9800,31.5800],"التجمع 4":[29.9600,31.6500],
+  "مصرالجديدة":[30.0861,31.3297],"شيرتون":[30.1050,31.3700],
+  "عباس":[30.0650,31.2800],"مكرم":[30.0550,31.3200],
+  "المعادى":[29.9600,31.2600],"زهراء المعادى":[29.9300,31.2500],
+  "المقطم":[30.0100,31.3500],"الهرم+فيصل":[29.9800,31.1800],
+  "حدائق الهرم":[29.9600,31.1400],"مهندسين":[30.0600,31.2100],
+  "شبرا+وسط البلد":[30.0800,31.2400],"زايد":[30.0600,30.7900],
+  "واحات":[29.8700,30.8500],"اكتوبر":[29.9800,30.9200]
+};
+
+// STATE
+let DELEGATES = JSON.parse(localStorage.getItem('cd_del')||'[]');
+
+let REGION_COORDS = JSON.parse(localStorage.getItem('cd_coords')||JSON.stringify(DEFAULT_COORDS));
+let CLIENTS = [];
+let ARCHIVE = JSON.parse(localStorage.getItem('cd_arc')||'[]');
+
+let CUR_USER=null, IS_ADMIN=false, MY_REGIONS=[];
+
+// ═══════════════════════════════════════
+// OFFLINE QUEUE — طابور العمليات الأوفلاين
+// ═══════════════════════════════════════
+let OFFLINE_QUEUE = JSON.parse(localStorage.getItem('cd_offline_queue') || '[]');
+
+function enqueueOffline(action, payload) {
+  OFFLINE_QUEUE.push({ action, ...payload, _queuedAt: Date.now() });
+  localStorage.setItem('cd_offline_queue', JSON.stringify(OFFLINE_QUEUE));
+}
+
+async function flushOfflineQueue() {
+  if (!OFFLINE_QUEUE.length) return 0;
+  try {
+    const res = await fetchWithCors(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'syncOffline', items: OFFLINE_QUEUE })
+    });
+    if (res && res.ok) {
+      const synced = OFFLINE_QUEUE.length;
+      OFFLINE_QUEUE = [];
+      localStorage.setItem('cd_offline_queue', '[]');
+      return synced;
+    }
+  } catch(e) {
+    console.warn('فشل تفريغ الطابور:', e);
+  }
+  return 0;
+}
+
+// دالة fetch مع دعم CORS + timeout
+async function fetchWithCors(url, options = {}, timeoutMs = 12000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timer);
+    if (!res.ok && res.status !== 0) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    try { return JSON.parse(text); } catch(e) { return { ok: true }; }
+  } catch(e) {
+    clearTimeout(timer);
+    throw e;
+  }
+}
+
+// دالة POST للشيت مع fallback للأوفلاين
+async function postToSheet(action, payload) {
+  try {
+    await fetchWithCors(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...payload })
+    });
+  } catch(e) {
+    console.warn(`[Offline] ${action} — حُفظ في الطابور:`, e.message);
+    enqueueOffline(action, payload);
+  }
+}
+
+// ═══════════════════════════════════════
+// LOAD FROM GOOGLE SHEETS
+// ═══════════════════════════════════════
+let dataLoaded = false;
+
+async function loadFromSheets() {
+  const loader = document.getElementById('loaderScreen');
+  if(loader) loader.style.display = 'flex';
+  let isOnline = false;
+  try {
+    // جلب كل البيانات بطلب واحد (أسرع + أقل quota)
+    const data = await fetchWithCors(API_URL + '?action=getAll');
+
+    if (data && data.ok) {
+      isOnline = true;
+
+      // ── تفريغ الطابور الأوفلاين أولاً ──
+      const synced = await flushOfflineQueue();
+      if (synced > 0) toast(`📤 تم رفع ${synced} عملية محفوظة أوفلاين`);
+
+      // ── عملاء ──
+      if (data.clients && data.clients.length >= 0) {
+        RAW_CLIENTS = data.clients;
+        const localClients = JSON.parse(localStorage.getItem('cd_clients') || '[]');
+        CLIENTS = RAW_CLIENTS.map((c, idx) => {
+          const local = localClients.find(l => l.n === c.n && l.r === c.r);
+          return { ...c, id: idx, vstatus: local ? local.vstatus : null };
+        });
+        localStorage.setItem('cd_clients', JSON.stringify(CLIENTS));
+      }
+
+      // ── مناديب ──
+      if (data.delegates && data.delegates.length) {
+        DELEGATES = data.delegates.map((d, i) => ({
+          ...d,
+          id    : d.id || (i + 1),
+          color : DEL_COLORS[i % DEL_COLORS.length],
+          regions: Array.isArray(d.regions) ? d.regions : [],
+        }));
+        localStorage.setItem('cd_del', JSON.stringify(DELEGATES));
+        buildLogin();
+      } else if (!DELEGATES.length) {
+        DELEGATES = JSON.parse(localStorage.getItem('cd_del') || '[]');
+      }
+
+      // ── مخزن ──
+      if (data.stock) {
+        COMPANY_STOCK = data.stock.map(s => ({ name: s.name || s.code, qty: s.qty, unit: s.unit }));
+        localStorage.setItem('cd_stock_company', JSON.stringify(COMPANY_STOCK));
+      }
+
+      // ── أرشيف (merge محلي + شيت) ──
+      if (data.archive) {
+        const localArchive = JSON.parse(localStorage.getItem('cd_arc') || '[]');
+        const merged = [...data.archive, ...localArchive];
+        const seen = new Map();
+        const unique = [];
+        for (const a of merged) {
+          const key = String(a.ts || (a.name + a.date));
+          if (!seen.has(key)) { seen.set(key, true); unique.push(a); }
+        }
+        ARCHIVE = unique.sort((a,b) => (b.ts||0) - (a.ts||0));
+        localStorage.setItem('cd_arc', JSON.stringify(ARCHIVE));
+      }
+
+      dataLoaded = true;
+      const qLen = OFFLINE_QUEUE.length;
+      const qMsg = qLen > 0 ? ` | ⏳ ${qLen} عملية في الطابور` : '';
+      toast(`✅ ${CLIENTS.length} عميل | ${DELEGATES.length} مندوب${qMsg}`);
+
+    } else {
+      throw new Error((data && data.error) || 'فشل جلب البيانات');
+    }
+
+  } catch(e) {
+    console.error('loadFromSheets error:', e);
+    // ── وضع الأوفلاين: تحميل من الكاش المحلي ──
+    const cachedClients = localStorage.getItem('cd_clients');
+    if (cachedClients) {
+      CLIENTS    = JSON.parse(cachedClients);
+      RAW_CLIENTS = CLIENTS;
+      DELEGATES  = JSON.parse(localStorage.getItem('cd_del') || '[]');
+      COMPANY_STOCK = JSON.parse(localStorage.getItem('cd_stock_company') || '[]');
+      ARCHIVE    = JSON.parse(localStorage.getItem('cd_arc') || '[]');
+      dataLoaded = true;
+      const qLen = OFFLINE_QUEUE.length;
+      toast(`⚠️ أوفلاين — بيانات محلية${qLen > 0 ? ` | ${qLen} عملية في الطابور` : ''}`);
+    } else {
+      toast('❌ فشل التحميل — تأكد من اتصال الإنترنت');
+    }
+  }
+  if(loader) loader.style.display = 'none';
+}
+
+let curFilter='all', cancelFilter='all', routeFilter='urgent';
+let curVisitId=null, curStatus=null, curCollect=null;
+let editDelId=null, editClientId=null, editLocRegion=null;
+let mapInited=false,mapObj=null,mapMarkers=[];
+let liveMapInited=false,liveMapObj=null,liveMarkers={};
+let delegateLocations={};
+
+// DATE UTILS
+const TODAY=new Date();TODAY.setHours(0,0,0,0);
+function parseDMY(s){
+  if(!s)return null;
+  const p=String(s).split('/');
+  if(p.length===3){const d=new Date(+p[2],+p[1]-1,+p[0]);d.setHours(0,0,0,0);return d;}
+  const d=new Date(s);d.setHours(0,0,0,0);return isNaN(d)?null:d;
+}
+function dL(nv){const d=parseDMY(nv);if(!d)return null;return Math.round((d-TODAY)/86400000);}
+function vBadge(nv){
+  const d=dL(nv);if(d===null)return '';
+  if(d<0)return`<span class="vb vb-late">متأخر ${Math.abs(d)} يوم</span>`;
+  if(d===0)return`<span class="vb vb-today">اليوم</span>`;
+  if(d===1)return`<span class="vb vb-tmr">الغد</span>`;
+  if(d<=7)return`<span class="vb vb-soon">${d} أيام</span>`;
+  return`<span class="vb vb-ok">${d} يوم</span>`;
+}
+function fmtP(p){if(!p)return '';p=String(p).replace(/\D/g,'');if(p.startsWith('20')&&p.length===12)return'+'+p;if(p.startsWith('0')&&p.length===11)return'+2'+p;if(p.length===10)return'+20'+p;return p;}
+function waLink(p,n){const ph=fmtP(p).replace('+','');const m=encodeURIComponent(`السلام عليكم ${n}، نذكركم بموعد الزيارة. هل ستكون متواجداً؟`);return ph?`https://wa.me/${ph}?text=${m}`:'#';}
+function pBadges(c){let b='';if(c.mop)b+=`<span class="pb pb-g">MOP:${c.mop}</span>`;if(c.mit)b+=`<span class="pb pb-b">MIT:${c.mit}</span>`;if(c.hd1)b+=`<span class="pb pb-a">HD1:${c.hd1}</span>`;if(c.hd2)b+=`<span class="pb pb-d">HD2:${c.hd2}</span>`;if(c.m36)b+=`<span class="pb pb-c">MOP36:${c.m36}</span>`;return b;}
+function getDel(r){return DELEGATES.find(d=>d.regions&&d.regions.includes(r));}
+function saveClients(){localStorage.setItem('cd_clients',JSON.stringify(CLIENTS));}
+
+// LOGIN
+function buildLogin(){
+  const sel=document.getElementById('loginUser');
+  sel.innerHTML='<option value="">— اختر —</option><option value="admin">👑 المدير</option>';
+  DELEGATES.forEach(d=>{sel.innerHTML+=`<option value="${d.id}">${d.name}</option>`;});
+}
+let pinVal='';
+function onUC(){pinVal='';updDots();document.getElementById('lerr').textContent='';}
+function pp(k){
+  if(k==='C'){pinVal=pinVal.slice(0,-1);}
+  else if(pinVal.length<4){pinVal+=k;}
+  updDots();
+  if(pinVal.length===4)setTimeout(doLogin,180);
+}
+function updDots(){for(let i=0;i<4;i++)document.getElementById('d'+i).classList.toggle('on',i<pinVal.length);}
+function doLogin(){
+  const uid=document.getElementById('loginUser').value;
+  const err=document.getElementById('lerr');
+  if(!uid){err.textContent='اختر أولاً';return;}
+  if(uid==='admin'){
+    if(pinVal!=='0000'){err.textContent='PIN خاطئ ❌';pinVal='';updDots();return;}
+    CUR_USER={id:'admin',name:'المدير'};IS_ADMIN=true;MY_REGIONS=[...REGIONS];
+  } else {
+    const del=DELEGATES.find(d=>String(d.id)===uid);
+    if(!del){err.textContent='خطأ';return;}
+    if(pinVal!==del.pin){err.textContent='PIN خاطئ ❌';pinVal='';updDots();return;}
+    CUR_USER=del;IS_ADMIN=false;MY_REGIONS=del.regions||[];
+  }
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('mainApp').style.display='block';
+  document.getElementById('topUser').textContent=CUR_USER.name;
+  const rb=document.getElementById('rbanner');
+  if(IS_ADMIN){rb.textContent='👑 المدير — صلاحية كاملة';rb.className='rbanner admin';}
+  else{rb.textContent=`👤 ${CUR_USER.name} — المناطق: ${MY_REGIONS.join('، ')||'غير محددة'}`;rb.className='rbanner del';}
+  document.querySelectorAll('.admin-only').forEach(el=>el.style.display=IS_ADMIN?'':'none');
+  document.getElementById('fab').style.display=IS_ADMIN?'flex':'none';
+  startGPS();
+  initApp();
+}
+function changeApiUrl(){
+  const cur = localStorage.getItem('cd_api_url') || API_URL;
+  const newUrl = prompt('أدخل رابط الـ API الجديد:', cur);
+  if(newUrl && newUrl.includes('script.google.com')) {
+    localStorage.setItem('cd_api_url', newUrl);
+    API_URL = newUrl;
+    toast('✅ تم تحديث الرابط — أعد تشغيل المزامنة');
+  } else if(newUrl) {
+    toast('❌ رابط غير صحيح');
+  }
+}
+
+function doLogout(){
+  stopGPS();CUR_USER=null;IS_ADMIN=false;MY_REGIONS=[];pinVal='';updDots();
+  document.getElementById('loginUser').value='';document.getElementById('lerr').textContent='';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('mainApp').style.display='none';
+}
+
+// GPS TRACKING
+let gpsWatcher=null;
+function startGPS(){
+  if(!CUR_USER||IS_ADMIN)return;
+  if('geolocation' in navigator){
+    gpsWatcher=navigator.geolocation.watchPosition(pos=>{
+      const loc={lat:pos.coords.latitude,lng:pos.coords.longitude,ts:Date.now(),name:CUR_USER.name,id:CUR_USER.id};
+      delegateLocations[CUR_USER.id]=loc;
+      const allLocs=JSON.parse(localStorage.getItem('cd_locs')||'{}');
+      allLocs[CUR_USER.id]=loc;
+      localStorage.setItem('cd_locs',JSON.stringify(allLocs));
+      if(liveMapInited)updateLiveMarkers();
+    },{enableHighAccuracy:true,maximumAge:30000});
+  }
+}
+function stopGPS(){if(gpsWatcher)navigator.geolocation.clearWatch(gpsWatcher);gpsWatcher=null;}
+
+// INIT
+function visC(){return IS_ADMIN?CLIENTS:CLIENTS.filter(c=>MY_REGIONS.includes(c.r));}
+function initApp(){
+  loadFromSheets().then(()=>{
+    renderHome();buildChips();filterC();
+    renderCancelled();renderRoute();renderDelegates();renderLocList();renderArchive();
+    buildRegionSelect();
+    try{ renderInventory(); }catch(e){ console.error(e); }
+  });
+}
+
+// HOME
+function renderHome(){
+  const vc=visC();
+  const today=vc.filter(c=>dL(c.nv)===0);
+  const over=vc.filter(c=>{const d=dL(c.nv);return d!==null&&d<0;});
+  const tmr=vc.filter(c=>dL(c.nv)===1);
+  document.getElementById('stats').innerHTML=`
+    <div class="stat g"><div class="sv">${vc.length}</div><div class="sl">إجمالي العملاء</div></div>
+    <div class="stat a"><div class="sv">${today.length}</div><div class="sl">زيارات اليوم</div></div>
+    <div class="stat c"><div class="sv">${over.length}</div><div class="sl">متأخرة</div></div>
+    <div class="stat b"><div class="sv">${tmr.length}</div><div class="sl">زيارات الغد</div></div>
+  `;
+  const ts=document.getElementById('homeToday');
+  ts.innerHTML=`<div class="sec-hd" style="margin-bottom:9px"><span>📅 زيارات اليوم</span><span class="sec-count">${today.length}</span></div>`;
+  ts.innerHTML+=today.length?today.slice(0,10).map(miniRow).join(''):'<div class="empty"><div class="ei">✅</div><p>لا توجد زيارات اليوم</p></div>';
+  const os=document.getElementById('homeOverdue');
+  os.innerHTML=`<div class="sec-hd" style="margin-top:14px;margin-bottom:9px"><span>⚠️ متأخرة</span><span class="sec-count">${over.length}</span></div>`;
+  os.innerHTML+=over.length?over.slice(0,6).map(miniRow).join('')+(over.length>6?`<div style="text-align:center;font-size:12px;color:var(--c);padding:8px">و ${over.length-6} آخرين</div>`:''):'<div class="empty"><div class="ei">🎉</div><p>لا يوجد تأخير</p></div>';
+}
+function miniRow(c){
+  const del=getDel(c.r);
+  return`<div onclick="openVisitModal(${c.id})" style="padding:9px 11px;background:#fff;border-radius:9px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 5px rgba(0,0,0,0.07)">
+    <div><div style="font-size:13px;font-weight:700">${c.n}</div><div style="font-size:10px;color:var(--md)">${c.r}${IS_ADMIN&&del?' · '+del.name:''}</div></div>
+    <div style="display:flex;gap:5px;align-items:center">
+      ${vBadge(c.nv)}
+      ${c.p?`<a href="${waLink(c.p,c.n)}" target="_blank" onclick="event.stopPropagation()" style="background:#25D366;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;text-decoration:none">💬</a>`:''}
+    </div>
+  </div>`;
+}
+
+// CLIENTS
+function buildChips(){
+  const regs=IS_ADMIN?REGIONS:MY_REGIONS;
+  document.getElementById('chips').innerHTML=[
+    {k:'all',l:'الكل'},{k:'today',l:'اليوم'},{k:'tmr',l:'الغد'},
+    {k:'week',l:'الأسبوع'},{k:'late',l:'⚠️ متأخر'},
+    ...regs.map(r=>({k:'r:'+r,l:r}))
+  ].map(f=>`<div class="chip ${f.k==='all'?'active':''}" onclick="setF('${f.k}',this)">${f.l}</div>`).join('');
+}
+function setF(k,el){curFilter=k;document.querySelectorAll('#chips .chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');filterC();}
+function clearSrch(){document.getElementById('srch').value='';document.getElementById('xbtn').style.display='none';filterC();}
+function filterC(){
+  const q=(document.getElementById('srch').value||'').toLowerCase();
+  document.getElementById('xbtn').style.display=q?'block':'none';
+  let list=visC();
+  if(curFilter==='today')list=list.filter(c=>dL(c.nv)===0);
+  else if(curFilter==='tmr')list=list.filter(c=>dL(c.nv)===1);
+  else if(curFilter==='week')list=list.filter(c=>{const d=dL(c.nv);return d!==null&&d>=0&&d<=7;});
+  else if(curFilter==='late')list=list.filter(c=>{const d=dL(c.nv);return d!==null&&d<0;});
+  else if(curFilter.startsWith('r:'))list=list.filter(c=>c.r===curFilter.slice(2));
+  if(q)list=list.filter(c=>(c.n||'').toLowerCase().includes(q)||(c.a||'').toLowerCase().includes(q)||(c.r||'').toLowerCase().includes(q));
+  list.sort((a,b)=>{const da=dL(a.nv),db=dL(b.nv);if(da===null&&db===null)return 0;if(da===null)return 1;if(db===null)return-1;return da-db;});
+  document.getElementById('cnt').textContent=`${list.length} عميل`;
+  const el=document.getElementById('clist');
+  el.innerHTML=list.length?list.slice(0,120).map(clientCard).join(''):'<div class="empty"><div class="ei">🔍</div><p>لا توجد نتائج</p></div>';
+}
+function clientCard(c){
+  const del=getDel(c.r);const dc=del?del.color:'#888';
+  const cancelled=['cancel','absent'].includes(c.vstatus);
+  return`<div class="cc" id="cc-${c.id}" style="${cancelled?'opacity:0.6;':''}">
+    <div class="cc-top" onclick="toggleCC(${c.id})">
+      <div class="cc-name"><span>${c.n}${cancelled?` <span style="font-size:10px;color:var(--c)">(${c.vstatus==='cancel'?'كنسل':'غايب'})</span>`:''}</span>${vBadge(c.nv)}</div>
+      <div class="cc-sub">
+        <span style="width:7px;height:7px;border-radius:50%;background:${dc};display:inline-block;flex-shrink:0"></span>
+        ${c.r}${IS_ADMIN&&del?' — '+del.name:''}
+        ${c.pr?`<span style="color:var(--g);font-weight:900;margin-right:auto">${c.pr}₪</span>`:''}
+      </div>
+      ${c.a?`<div class="cc-addr">📍 ${c.a}</div>`:''}
+      <div class="cc-badges">${pBadges(c)}</div>
+    </div>
+    <div class="cc-exp" id="exp-${c.id}">
+      <table class="ptable"><thead><tr><th>المنتج</th><th>التفاصيل</th></tr></thead><tbody>
+        ${c.mop?`<tr><td>MOP ممسحة</td><td>${c.mop}</td></tr>`:''}
+        ${c.mit?`<tr><td>MIT جوانتي</td><td>${c.mit}</td></tr>`:''}
+        ${c.hd1?`<tr><td>HD1 شيش</td><td>${c.hd1}</td></tr>`:''}
+        ${c.hd2?`<tr><td>HD2 أسقف</td><td>${c.hd2}</td></tr>`:''}
+        ${c.m36?`<tr><td>MOP36 كبير</td><td>${c.m36}</td></tr>`:''}
+      </tbody></table>
+      ${c.nt?`<div style="font-size:11px;color:#555;background:#fff8f0;padding:8px;border-radius:7px;margin-top:4px">📝 ${c.nt}</div>`:''}
+    </div>
+    <div class="cc-actions">
+      ${c.p?`<button class="ca" onclick="window.open('${waLink(c.p,c.n)}','_blank')"><span class="ci">💬</span>واتساب</button>`:''}
+      ${c.p?`<button class="ca" onclick="window.open('tel:${fmtP(c.p)}')"><span class="ci">📞</span>اتصال</button>`:''}
+      <button class="ca" onclick="openGM(this.dataset.addr)" data-addr="${(c.a||c.r)}"><span class="ci">📍</span>خريطة</button>
+      <button class="ca green" onclick="openVisitModal(${c.id})"><span class="ci">✅</span>تسجيل</button>
+      ${IS_ADMIN?`<button class="ca" onclick="openEditClient(${c.id})"><span class="ci">✏️</span>تعديل</button>`:''}
+    </div>
+  </div>`;
+}
+function toggleCC(id){document.getElementById('exp-'+id).classList.toggle('open');}
+function openGM(addr){window.open('https://maps.google.com/?q='+encodeURIComponent(addr),'_blank');}
+
+// CANCELLED LIST
+function renderCancelled(){
+  const cancelled=ARCHIVE.filter(e=>['cancel','absent','delayed'].includes(e.status));
+  document.getElementById('cancelCount').textContent=ARCHIVE.filter(e=>['cancel','absent'].includes(e.status)).length;
+  let list=cancelled;
+  if(cancelFilter!=='all')list=list.filter(e=>e.status===cancelFilter);
+  const el=document.getElementById('cancelList');
+  if(!list.length){el.innerHTML='<div class="empty"><div class="ei">✅</div><p>لا يوجد كنسل</p></div>';return;}
+  const stMap={cancel:'❌ كنسل',absent:'🚪 غياب',delayed:'🔄 مؤجل'};
+  el.innerHTML=list.slice(0,100).map(e=>`
+    <div class="cancel-card">
+      <div class="cancel-name">${e.name}</div>
+      <div class="cancel-meta">📍 ${e.region} &nbsp;|&nbsp; 📅 ${e.date} &nbsp;|&nbsp; 👤 ${e.delegate||'—'}</div>
+      ${e.reason?`<div class="cancel-reason">💬 ${e.reason}</div>`:''}
+      <div style="font-size:11px;margin-top:4px;font-weight:700;color:var(--c)">${stMap[e.status]||e.status}</div>
+      ${e.phone?`<div style="margin-top:6px"><a href="${waLink(e.phone,e.name)}" target="_blank" style="background:#25D366;color:#fff;padding:4px 12px;border-radius:20px;text-decoration:none;font-size:11px;font-weight:700">💬 تواصل</a></div>`:''}
+    </div>`).join('');
+}
+function setCancelFilter(f,el){cancelFilter=f;document.querySelectorAll('#cancelChips .chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderCancelled();}
+
+// VISIT MODAL
+function openVisitModal(id){
+  curVisitId=id;curStatus=null;curCollect=null;
+  const c=CLIENTS[id];
+  document.getElementById('vName').textContent=c.n;
+  document.getElementById('vInfo').textContent=`${c.r} | ${pBadges(c).replace(/<[^>]+>/g,'')} | ${c.pr||0} جنيه`;
+  document.getElementById('vAmt').value=c.pr||'';
+  document.getElementById('vNotes').value='';
+  document.getElementById('vReason').value='';
+  document.querySelectorAll('#visitOv .sbtn').forEach(b=>b.className='sbtn');
+  document.getElementById('visitOv').classList.add('open');
+}
+function pSt(s,btn){
+  curStatus=s;
+  document.querySelectorAll('#visitOv .sbtn').forEach(b=>{if(b.onclick?.toString().includes('pSt'))b.className='sbtn';});
+  btn.classList.add('s-'+s);
+}
+function pCo(s,btn){
+  curCollect=s;
+  document.querySelectorAll('#visitOv .sbtn').forEach(b=>{if(b.onclick?.toString().includes('pCo'))b.className='sbtn';});
+  btn.classList.add('s-pay');
+}
+async function saveVisit() {
+  if(!curStatus){alert('اختر حالة الزيارة');return;}
+  const c = CLIENTS[curVisitId];
+  const reason = document.getElementById('vReason').value;
+  const entry = {
+    date: new Date().toLocaleDateString('ar-EG'),
+    ts: Date.now(),
+    name: c.n,
+    region: c.r,
+    phone: c.p,
+    products: [c.mop, c.mit, c.hd1, c.hd2, c.m36].filter(Boolean).join(' | '),
+    status: curStatus,
+    collect: curCollect,
+    reason: reason,
+    amount: document.getElementById('vAmt').value,
+    notes: document.getElementById('vNotes').value,
+    price: c.pr,
+    delegate: CUR_USER.name
+  };
+  
+  // إرسال للشيت مع Offline fallback
+  postToSheet('addVisit', {
+    ...entry,
+    clientId: curVisitId,
+    cycle: CLIENTS[curVisitId]?.cy || 28,
+  });
+  
+  ARCHIVE.unshift(entry);
+  localStorage.setItem('cd_arc', JSON.stringify(ARCHIVE.slice(0,2000)));
+  CLIENTS[curVisitId].vstatus = curStatus;
+  saveClients();
+  
+  if(['done','partial'].includes(curStatus)){
+    const cy = c.cy || 28;
+    const next = new Date(); next.setDate(next.getDate() + cy);
+    CLIENTS[curVisitId].nv = next.toLocaleDateString('en-GB').replace(/\//g,'/');
+    saveClients();
+  }
+  closeOv('visitOv');
+  renderHome(); filterC(); renderCancelled(); renderArchive();
+  toast(`${ {done:'✅ تم التغيير', delayed:'🔄 مؤجل', cancel:'❌ كنسل', partial:'⚡ جزئي', absent:'🚪 غياب' }[curStatus] } — ${c.n}`);
+}
+
+// ADD / EDIT CLIENT
+function buildRegionSelect(){
+  const sel=document.getElementById('cRegion');
+  sel.innerHTML=REGIONS.map(r=>`<option value="${r}">${r}</option>`).join('');
+}
+function openAddClient(){
+  if(!IS_ADMIN){alert('للمدير فقط');return;}
+  editClientId=null;
+  document.getElementById('clientModalTitle').textContent='إضافة عميل جديد';
+  document.getElementById('deleteClientBtn').style.display='none';
+  ['cName','cPhone','cAddr','cMop','cMit','cHd1','cHd2','cM36','cNote'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cPrice').value='';
+  document.getElementById('cCycle').value='28';
+  document.getElementById('cDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('clientOv').classList.add('open');
+}
+function openEditClient(id){
+  if(!IS_ADMIN)return;
+  editClientId=id;
+  const c=CLIENTS[id];
+  document.getElementById('clientModalTitle').textContent='تعديل: '+c.n;
+  document.getElementById('deleteClientBtn').style.display='block';
+  document.getElementById('cName').value=c.n||'';
+  document.getElementById('cRegion').value=c.r||REGIONS[0];
+  document.getElementById('cPhone').value=c.p||'';
+  document.getElementById('cAddr').value=c.a||'';
+  document.getElementById('cCycle').value=c.cy||28;
+  document.getElementById('cMop').value=c.mop||'';
+  document.getElementById('cMit').value=c.mit||'';
+  document.getElementById('cHd1').value=c.hd1||'';
+  document.getElementById('cHd2').value=c.hd2||'';
+  document.getElementById('cM36').value=c.m36||'';
+  document.getElementById('cPrice').value=c.pr||'';
+  document.getElementById('cNote').value=c.nt||'';
+  if(c.nv){const p=c.nv.split('/');if(p.length===3)document.getElementById('cDate').value=`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;}
+  document.getElementById('clientOv').classList.add('open');
+}
+function saveClient(){
+  const name=document.getElementById('cName').value.trim();
+  if(!name){alert('أدخل اسم العميل');return;}
+  const dateVal=document.getElementById('cDate').value;
+  let nvFormatted='';
+  if(dateVal){const d=new Date(dateVal);nvFormatted=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
+  const data={
+    n:name,r:document.getElementById('cRegion').value,p:document.getElementById('cPhone').value.trim(),
+    a:document.getElementById('cAddr').value.trim(),cy:+document.getElementById('cCycle').value,
+    mop:document.getElementById('cMop').value.trim(),mit:document.getElementById('cMit').value.trim(),
+    hd1:document.getElementById('cHd1').value.trim(),hd2:document.getElementById('cHd2').value.trim(),
+    m36:document.getElementById('cM36').value.trim(),pr:+document.getElementById('cPrice').value||0,
+    nt:document.getElementById('cNote').value.trim(),nv:nvFormatted,vstatus:null
+  };
+  if(editClientId!==null){Object.assign(CLIENTS[editClientId],data);}
+  else{data.id=CLIENTS.length;CLIENTS.push(data);}
+  saveClients();closeOv('clientOv');filterC();renderHome();
+  // حفظ في الشيت مع Offline fallback
+  postToSheet(editClientId !== null ? 'updateClient' : 'addClient', { data: {...data, id: editClientId} });
+  toast(editClientId!==null?'✅ تم تعديل العميل':'✅ تمت إضافة العميل الجديد');
+  editClientId=null;
+}
+function deleteClient(){
+  if(!confirm('هل تريد حذف هذا العميل نهائياً؟'))return;
+  CLIENTS.splice(editClientId,1);
+  CLIENTS.forEach((c,i)=>c.id=i);
+  saveClients();closeOv('clientOv');filterC();renderHome();
+  toast('🗑️ تم حذف العميل');editClientId=null;
+}
+
+// ROUTE
+function setRouteFilter(f,el){routeFilter=f;document.querySelectorAll('#routeChips .chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderRoute();}
+function renderRoute(){
+  let list=visC();
+  if(routeFilter==='today')list=list.filter(c=>dL(c.nv)===0);
+  else if(routeFilter==='urgent')list=list.filter(c=>{const d=dL(c.nv);return d!==null&&d<=1;});
+  else if(routeFilter==='week')list=list.filter(c=>{const d=dL(c.nv);return d!==null&&d<=7;});
+  else if(routeFilter==='late')list=list.filter(c=>{const d=dL(c.nv);return d!==null&&d<0;});
+  list=routeSort(list);
+  document.getElementById('routeTitle').textContent=`📍 المسار الأمثل — ${list.length} عميل`;
+  document.getElementById('routeSub').textContent=IS_ADMIN?'كل المناطق مرتبة جغرافياً':`${MY_REGIONS.join('، ')}`;
+  const el=document.getElementById('routeList');
+  if(!list.length){el.innerHTML='<div class="empty"><div class="ei">🗺️</div><p>لا توجد زيارات</p></div>';return;}
+  el.innerHTML=list.map((c,i)=>`
+    <div class="ri">
+      <div class="rnum">${i+1}</div>
+      <div class="rinfo">
+        <div class="rname">${c.n} ${vBadge(c.nv)}</div>
+        <div class="raddr">📍 ${c.a||c.r}</div>
+        <div style="margin-top:3px">${pBadges(c)}</div>
+        <div class="racts">
+          ${c.p?`<button class="ract ract-wa" onclick="window.open('${waLink(c.p,c.n)}','_blank')">💬 واتساب</button>`:''}
+          <button class="ract ract-b" onclick="openGM(this.dataset.addr)" data-addr="${c.a||c.r}">📍 خريطة</button>
+          <button class="ract ract-g" onclick="openVisitModal(${c.id})">✅ تسجيل</button>
+          ${IS_ADMIN?`<button class="ract ract-r" onclick="openEditClient(${c.id})">✏️</button>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+function routeSort(clients){
+  const sorted=[];const byReg={};
+  clients.forEach(c=>{if(!byReg[c.r])byReg[c.r]=[];byReg[c.r].push(c);});
+  const regList=Object.keys(byReg);
+  if(!regList.length)return[];
+  let start=[30.0444,31.2357];const visited=new Set();const order=[];
+  while(order.length<regList.length){
+    let best=null,bestD=Infinity;
+    regList.forEach(r=>{if(!visited.has(r)){const co=REGION_COORDS[r];if(co){const d=Math.hypot(co[0]-start[0],co[1]-start[1]);if(d<bestD){bestD=d;best=r;}}}});
+    if(!best){regList.forEach(r=>{if(!visited.has(r)&&!order.includes(r))order.push(r);});break;}
+    order.push(best);visited.add(best);start=REGION_COORDS[best]||start;
+  }
+  order.forEach(r=>{if(byReg[r])sorted.push(...byReg[r]);});
+  clients.forEach(c=>{if(!sorted.find(x=>x.id===c.id))sorted.push(c);});
+  return sorted;
+}
+
+// DELEGATES
+function renderDelegates(){
+  if(!IS_ADMIN){document.getElementById('delList').innerHTML='<div class="empty"><div class="ei">🔒</div><p>للمدير فقط</p></div>';return;}
+  document.getElementById('delList').innerHTML=DELEGATES.map(d=>{
+    const mc=CLIENTS.filter(c=>d.regions?.includes(c.r));
+    const td=mc.filter(c=>dL(c.nv)===0).length;
+    const late=mc.filter(c=>{const x=dL(c.nv);return x!==null&&x<0;}).length;
+    const rev=mc.reduce((s,c)=>s+(c.pr||0),0);
+    const locs=JSON.parse(localStorage.getItem('cd_locs')||'{}');
+    const loc=locs[d.id];
+    const locStr=loc?`<span class="live-dot"></span> مباشر (${Math.round((Date.now()-loc.ts)/60000)} دقيقة)`:'غير متصل';
+    return`<div class="del-card" style="border-right:4px solid ${d.color}">
+      <div class="del-hd">
+        <div>
+          <div class="del-name">${d.name}</div>
+          <div class="del-phone">📞 ${d.phone||'—'}</div>
+          <div class="del-pin">🔑 PIN: ${d.pin} &nbsp;|&nbsp; ${locStr}</div>
+        </div>
+        <button onclick="openEditDel(${d.id})" style="background:var(--lt);border:none;border-radius:8px;padding:6px 12px;cursor:pointer;font-family:Cairo,sans-serif;font-size:11px;font-weight:700">تعديل</button>
+      </div>
+      <div class="del-regs">${(d.regions||[]).map(r=>`<span class="reg-tag">${r}</span>`).join('')||'<span style="color:var(--md);font-size:11px">لم تحدد مناطق</span>'}</div>
+      <div class="del-stats">
+        <div class="ds"><div class="dv">${mc.length}</div><div class="dl">عميل</div></div>
+        <div class="ds"><div class="dv" style="color:var(--a)">${td}</div><div class="dl">اليوم</div></div>
+        <div class="ds"><div class="dv" style="color:var(--c)">${late}</div><div class="dl">متأخر</div></div>
+        <div class="ds"><div class="dv" style="font-size:12px">${(rev/1000).toFixed(0)}k</div><div class="dl">جنيه/شهر</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function openAddDel(){
+  editDelId=null;document.getElementById('delMTitle').textContent='إضافة مندوب';
+  document.getElementById('delDelBtn').style.display='none';
+  ['dName','dPhone','dPin'].forEach(id=>document.getElementById(id).value='');
+  buildRegGrid([]);document.getElementById('delOv').classList.add('open');
+}
+function openEditDel(id){
+  editDelId=id;const d=DELEGATES.find(x=>x.id===id);
+  document.getElementById('delMTitle').textContent='تعديل: '+d.name;
+  document.getElementById('delDelBtn').style.display='block';
+  document.getElementById('dName').value=d.name;
+  document.getElementById('dPhone').value=d.phone||'';
+  document.getElementById('dPin').value=d.pin||'';
+  buildRegGrid(d.regions||[]);document.getElementById('delOv').classList.add('open');
+}
+function buildRegGrid(sel){
+  document.getElementById('regGrid').innerHTML=REGIONS.map(r=>{
+    const on=sel.includes(r);
+    return`<label class="rcbl ${on?'on':''}" onclick="tReg(this)"><input type="checkbox" value="${r}" ${on?'checked':''}>${r}</label>`;
+  }).join('');
+}
+function tReg(lbl){setTimeout(()=>lbl.classList.toggle('on',lbl.querySelector('input').checked),0);}
+function saveDel(){
+  const name=document.getElementById('dName').value.trim();
+  if(!name){alert('أدخل الاسم');return;}
+  const pin=document.getElementById('dPin').value.trim();
+  if(!pin||pin.length!==4){alert('PIN يجب أن يكون 4 أرقام');return;}
+  const phone=document.getElementById('dPhone').value.trim();
+  const regions=[...document.querySelectorAll('#regGrid input:checked')].map(i=>i.value);
+  if(editDelId){const d=DELEGATES.find(x=>x.id===editDelId);Object.assign(d,{name,phone,pin,regions});}
+  else{DELEGATES.push({id:Date.now(),name,phone,pin,regions,color:DEL_COLORS[DELEGATES.length%DEL_COLORS.length]});}
+  localStorage.setItem('cd_del',JSON.stringify(DELEGATES));
+  // حفظ في الشيت مع Offline fallback
+  const delData = editDelId ? DELEGATES.find(x=>x.id===editDelId) : DELEGATES[DELEGATES.length-1];
+  if(delData) postToSheet('saveDelegate', { data: delData });
+  closeOv('delOv');renderDelegates();buildChips();buildLogin();
+  toast('✅ تم حفظ المندوب');
+}
+function deleteDel(){
+  if(!confirm('حذف المندوب؟'))return;
+  DELEGATES=DELEGATES.filter(d=>d.id!==editDelId);
+  localStorage.setItem('cd_del',JSON.stringify(DELEGATES));
+  closeOv('delOv');renderDelegates();buildLogin();
+  toast('🗑️ تم حذف المندوب');
+}
+
+// LOCATIONS EDITOR
+function renderLocList(){
+  if(!IS_ADMIN)return;
+  document.getElementById('locList').innerHTML=REGIONS.map(r=>{
+    const co=REGION_COORDS[r];
+    return`<div class="loc-item">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700">${r}</div>
+        <div class="loc-coords">${co?`${co[0].toFixed(4)}, ${co[1].toFixed(4)}`:'غير محدد'}</div>
+      </div>
+      <button class="loc-edit-btn" onclick="openLocEdit('${r}')">تعديل</button>
+      ${co?`<button onclick="window.open('https://maps.google.com/?q=${co[0]},${co[1]}','_blank')" style="background:var(--gl);color:var(--g);border:none;border-radius:8px;padding:5px 9px;cursor:pointer;font-size:11px">🗺️</button>`:''}
+    </div>`;
+  }).join('');
+}
+function openLocEdit(region){
+  editLocRegion=region;
+  document.getElementById('locName').textContent='📍 '+region;
+  const co=REGION_COORDS[region];
+  document.getElementById('locLat').value=co?co[0]:'';
+  document.getElementById('locLng').value=co?co[1]:'';
+  document.getElementById('locOv').classList.add('open');
+}
+function saveLoc(){
+  const lat=+document.getElementById('locLat').value;
+  const lng=+document.getElementById('locLng').value;
+  if(!lat||!lng||lat<20||lat>35||lng<25||lng>40){alert('إحداثيات غير صحيحة. تأكد من أنك في مصر (lat: 22-32, lng: 25-37)');return;}
+  REGION_COORDS[editLocRegion]=[lat,lng];
+  localStorage.setItem('cd_coords',JSON.stringify(REGION_COORDS));
+  closeOv('locOv');renderLocList();
+  toast(`✅ تم تحديث موقع ${editLocRegion}`);
+}
+
+// LIVE MAP
+function initLiveMap(){
+  if(liveMapInited)return;liveMapInited=true;
+  liveMapObj=L.map('delMap').setView([30.0444,31.2357],10);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM'}).addTo(liveMapObj);
+  buildLiveMapBar();updateLiveMarkers();
+  setInterval(updateLiveMarkers,30000);
+}
+function buildLiveMapBar(){
+  document.getElementById('liveMapBar').innerHTML=`
+    <button class="mbtn active" onclick="setLiveF('all',this)">الكل</button>
+    ${DELEGATES.map(d=>`<button class="mbtn" onclick="setLiveF('${d.id}',this)" style="border-color:${d.color};color:${d.color}">${d.name}</button>`).join('')}`;
+}
+let liveFilter='all';
+function setLiveF(f,btn){liveFilter=f;document.querySelectorAll('#liveMapBar .mbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');updateLiveMarkers();}
+function updateLiveMarkers(){
+  const locs=JSON.parse(localStorage.getItem('cd_locs')||'{}');
+  const now=Date.now();
+  Object.values(liveMarkers).forEach(m=>liveMapObj.removeLayer(m));
+  Object.keys(liveMarkers).forEach(k=>delete liveMarkers[k]);
+
+  let activeCount=0;
+  DELEGATES.forEach(d=>{
+    if(liveFilter!=='all'&&String(d.id)!==String(liveFilter))return;
+    const loc=locs[d.id];
+    if(!loc)return;
+    const mins=Math.round((now-loc.ts)/60000);
+    const fresh=mins<10;
+    activeCount++;
+    const icon=L.divIcon({
+      html:`<div style="background:${d.color};color:#fff;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,0.35);position:relative">
+        ${d.name.charAt(0)}
+        ${fresh?'<div style="position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#22c55e;border:2px solid #fff"></div>':''}
+      </div>`,className:'',iconSize:[40,40],iconAnchor:[20,20]
+    });
+    const m=L.marker([loc.lat,loc.lng],{icon}).addTo(liveMapObj)
+      .bindPopup(`<div dir="rtl" style="font-family:Cairo,sans-serif;min-width:140px">
+        <b>${d.name}</b><br>
+        <span style="color:${fresh?'#22c55e':'#888'};font-size:12px">${fresh?'🟢 مباشر':'⚫ آخر ظهور'}: ${mins} دقيقة</span>
+      </div>`);
+    liveMarkers[d.id]=m;
+  });
+
+  const myC=visC().filter(c=>dL(c.nv)!==null&&dL(c.nv)<=1);
+  const byReg={};myC.forEach(c=>{if(!byReg[c.r])byReg[c.r]=0;byReg[c.r]++;});
+  Object.entries(byReg).forEach(([r,cnt])=>{
+    const co=REGION_COORDS[r];if(!co)return;
+    const icon=L.divIcon({html:`<div style="background:rgba(11,107,78,0.15);color:var(--g);border:1.5px dashed #0B6B4E;border-radius:8px;padding:2px 7px;font-size:11px;font-weight:700;white-space:nowrap">${r} (${cnt})</div>`,className:'',iconAnchor:[0,0]});
+    const m=L.marker(co,{icon,zIndexOffset:-100}).addTo(liveMapObj);
+    liveMarkers['region_'+r]=m;
+  });
+
+  document.getElementById('liveStatus').textContent=activeCount
+    ?`${activeCount} مندوب نشط الآن`:'لا يوجد مناديب متصلون حالياً';
+}
+
+// ARCHIVE
+function renderArchive(list){
+  list=list||ARCHIVE;
+  const el=document.getElementById('arcList');
+  if(!list.length){el.innerHTML='<div class="empty"><div class="ei">📁</div><p>لا يوجد أرشيف</p></div>';return;}
+  const sm={done:'✅ تم',delayed:'🔄 مؤجل',cancel:'❌ كنسل',partial:'⚡ جزئي',absent:'🚪 غياب'};
+  const sc={done:'#0B6B4E',delayed:'#E07B00',cancel:'#C0392B',partial:'#1A5F9E',absent:'#6B7280'};
+  el.innerHTML=list.slice(0,200).map(e=>`
+    <div class="arc-item" style="border-right:3px solid ${sc[e.status]||'#888'}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div style="font-size:13px;font-weight:700">${e.name}</div>
+        <span style="font-size:11px;font-weight:700;color:${sc[e.status]||'#888'}">${sm[e.status]||e.status}</span>
+      </div>
+      <div style="font-size:11px;color:var(--md);margin-top:2px">${e.region} | ${e.date} | ${e.delegate||'—'}</div>
+      ${e.products?`<div style="font-size:11px;color:#555;margin-top:2px">${e.products}</div>`:''}
+      ${e.reason?`<div style="font-size:12px;color:var(--c);margin-top:3px;font-weight:600">💬 ${e.reason}</div>`:''}
+      ${e.amount?`<div style="font-size:13px;font-weight:700;color:var(--g);margin-top:3px">💰 ${e.amount} جنيه (${e.collect||''})</div>`:''}
+    </div>`).join('');
+}
+function filterArc(){
+  const q=(document.getElementById('arcSrch').value||'').toLowerCase();
+  renderArchive(ARCHIVE.filter(e=>(e.name||'').toLowerCase().includes(q)||(e.region||'').toLowerCase().includes(q)));
+}
+
+// EXPORT
+function exportRpt(){
+  const m=document.createElement('div');
+  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:flex-end';
+  m.innerHTML=`<div style="background:#fff;width:100%;border-radius:20px 20px 0 0;padding:24px;font-family:Cairo,sans-serif">
+    <div style="font-size:16px;font-weight:900;margin-bottom:6px">📤 تصدير التقرير</div>
+    <div style="font-size:12px;color:#888;margin-bottom:20px">اختر نوع التصدير</div>
+    <button onclick="printPDF();this.closest('[style*=fixed]').remove()" style="width:100%;background:#0B6B4E;color:#fff;border:none;border-radius:12px;padding:14px;font-family:Cairo,sans-serif;font-size:15px;font-weight:900;cursor:pointer;margin-bottom:10px">🖨️ طباعة / PDF</button>
+    <button onclick="exportTxt();this.closest('[style*=fixed]').remove()" style="width:100%;background:#EAF2FB;color:#1A5F9E;border:none;border-radius:12px;padding:14px;font-family:Cairo,sans-serif;font-size:15px;font-weight:900;cursor:pointer;margin-bottom:10px">📄 ملف نصي</button>
+    <button onclick="this.closest('[style*=fixed]').remove()" style="width:100%;background:#F3F4F6;color:#6B7280;border:none;border-radius:12px;padding:12px;font-family:Cairo,sans-serif;font-size:14px;cursor:pointer">إلغاء</button>
+  </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click',e=>{if(e.target===m)m.remove();});
+}
+function exportTxt(){
+  const list=visC().filter(c=>{const d=dL(c.nv);return d!==null&&d<=1;});
+  if(!list.length){alert('لا توجد زيارات اليوم أو الغد');return;}
+  const sorted=routeSort(list);
+  let txt=`تقرير ClearDust — ${new Date().toLocaleDateString('ar-EG')}\nالمندوب: ${CUR_USER.name}\n${'='.repeat(40)}\n\n`;
+  sorted.forEach((c,i)=>{txt+=`${i+1}. ${c.n}\n   📍 ${c.a||c.r}\n   📞 ${c.p||'—'}\n   ${[c.mop,c.mit,c.hd1,c.hd2,c.m36].filter(Boolean).join(' | ')}\n   السعر: ${c.pr||0} جنيه\n\n`;});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain;charset=utf-8'}));
+  a.download=`cleardust_${CUR_USER.name}_${new Date().toISOString().slice(0,10)}.txt`;
+  a.click();
+}
+function printPDF(){
+  const list=visC().filter(c=>{const d=dL(c.nv);return d!==null&&d<=1;});
+  if(!list.length){alert('لا توجد زيارات اليوم أو الغد');return;}
+  const sorted=routeSort(list);
+  const dateStr=new Date().toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const totalRev=sorted.reduce((s,c)=>s+(c.pr||0),0);
+  const byReg={};
+  sorted.forEach(c=>{if(!byReg[c.r])byReg[c.r]=[];byReg[c.r].push(c);});
+  const clientRows=sorted.map((c,i)=>{
+    const pb=(bg,cl,lbl,val)=>'<span style="background:'+bg+';color:'+cl+';padding:2px 7px;border-radius:10px;font-size:11px;font-weight:700">'+lbl+': '+val+'</span>';
+    const prods=[
+      c.mop?pb('#E0F5EE','#0B6B4E','MOP',c.mop):'',
+      c.mit?pb('#EAF2FB','#1A5F9E','MIT',c.mit):'',
+      c.hd1?pb('#FFF3DC','#7a4400','HD1',c.hd1):'',
+      c.hd2?pb('#f0f0f0','#555','HD2',c.hd2):'',
+      c.m36?pb('#FDEDEC','#C0392B','MOP36',c.m36):'',
+    ].filter(Boolean).join(' ');
+    const dv=dL(c.nv);
+    const bStyle=(bg)=>'background:'+bg+';color:#fff;padding:2px 8px;border-radius:10px;font-size:10px';
+    const badge=dv<0
+      ?'<span style="'+bStyle('#C0392B')+'">متأخر '+Math.abs(dv)+' يوم</span>'
+      :dv===0?'<span style="'+bStyle('#FF6F00')+'">اليوم</span>'
+      :'<span style="'+bStyle('#E07B00')+'">الغد</span>';
+    const noteHtml=c.nt?'<div style="font-size:10px;color:#888;background:#fffbf0;padding:3px 7px;border-radius:6px;display:inline-block">📝 '+c.nt+'</div>':'';
+    const emptyProds='<span style="color:#aaa;font-size:11px">لا توجد منتجات</span>';
+    return '<tr style="border-bottom:1px solid #eee;page-break-inside:avoid">'
+      +'<td style="padding:10px 8px;font-weight:900;font-size:14px;color:#0B6B4E;width:32px;text-align:center">'+(i+1)+'</td>'
+      +'<td style="padding:10px 8px">'
+        +'<div style="font-size:13px;font-weight:900;margin-bottom:3px">'+c.n+' '+badge+'</div>'
+        +'<div style="font-size:11px;color:#888;margin-bottom:4px">📍 '+(c.a||c.r)+'&nbsp;&nbsp; 📞 '+(c.p||'—')+'</div>'
+        +'<div style="margin-bottom:4px">'+(prods||emptyProds)+'</div>'
+        +noteHtml
+      +'</td>'
+      +'<td style="padding:10px 8px;text-align:center;font-size:11px;color:#888">'+c.r+'</td>'
+      +'<td style="padding:10px 8px;text-align:center;font-weight:900;font-size:14px;color:#0B6B4E">'+(c.pr||0)+'</td>'
+      +'<td style="padding:10px 8px;text-align:center"><div style="font-size:10px;color:#aaa;margin-bottom:3px">الحالة</div><div style="border:1.5px solid #ddd;border-radius:8px;height:20px;width:60px;margin:auto"></div></td>'
+      +'<td style="padding:10px 8px;text-align:center"><div style="font-size:10px;color:#aaa;margin-bottom:3px">التحصيل</div><div style="border:1.5px solid #ddd;border-radius:8px;height:20px;width:60px;margin:auto"></div></td>'
+      +'</tr>';
+  }).join('');
+  const regSummary=Object.entries(byReg).map(([r,cs])=>'<div style="display:inline-block;background:#E0F5EE;border-radius:8px;padding:5px 12px;margin:3px;font-size:11px;font-weight:700">'+r+': '+cs.length+' عميل</div>').join('');
+  const html=`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>تقرير ClearDust — ${CUR_USER.name}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Cairo',Arial,sans-serif;color:#111;background:#fff;direction:rtl}
+  @media print{
+    @page{margin:12mm;size:A4}
+    body{font-size:12px}
+    .no-print{display:none!important}
+    tr{page-break-inside:avoid}
+  }
+  .print-btn{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0B6B4E;color:#fff;border:none;border-radius:40px;padding:12px 28px;font-family:Cairo,sans-serif;font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 4px 16px rgba(11,107,78,0.4);z-index:99}
+</style>
+</head>
+<body>
+<div style="background:linear-gradient(135deg,#0B6B4E,#18A374);color:#fff;padding:20px 24px;border-radius:0 0 16px 16px;margin-bottom:18px">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div>
+      <div style="font-size:22px;font-weight:900;letter-spacing:-1px">🧹 ClearDust</div>
+      <div style="font-size:13px;opacity:0.8;margin-top:3px">تقرير الزيارات اليومي</div>
+    </div>
+    <div style="text-align:left">
+      <div style="font-size:14px;font-weight:700">${CUR_USER.name}</div>
+      <div style="font-size:12px;opacity:0.75;margin-top:2px">${dateStr}</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:16px;margin-top:14px;flex-wrap:wrap">
+    <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:8px 16px;text-align:center">
+      <div style="font-size:22px;font-weight:900">${sorted.length}</div>
+      <div style="font-size:10px;opacity:0.8">إجمالي الزيارات</div>
+    </div>
+    <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:8px 16px;text-align:center">
+      <div style="font-size:22px;font-weight:900">${sorted.filter(c=>dL(c.nv)===0).length}</div>
+      <div style="font-size:10px;opacity:0.8">زيارات اليوم</div>
+    </div>
+    <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:8px 16px;text-align:center">
+      <div style="font-size:22px;font-weight:900">${sorted.filter(c=>dL(c.nv)<0).length}</div>
+      <div style="font-size:10px;opacity:0.8">متأخرة</div>
+    </div>
+    <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:8px 16px;text-align:center">
+      <div style="font-size:22px;font-weight:900">${totalRev.toLocaleString()}</div>
+      <div style="font-size:10px;opacity:0.8">جنيه إجمالي</div>
+    </div>
+  </div>
+</div>
+<div style="padding:0 16px 14px">
+  <div style="font-size:12px;font-weight:700;color:#0B6B4E;margin-bottom:6px">المناطق:</div>
+  ${regSummary}
+</div>
+<div style="padding:0 12px">
+<table style="width:100%;border-collapse:collapse;font-family:Cairo,sans-serif">
+  <thead>
+    <tr style="background:#0B6B4E;color:#fff">
+      <th style="padding:10px 8px;text-align:center;font-size:12px;width:32px">#</th>
+      <th style="padding:10px 8px;text-align:right;font-size:12px">العميل والمنتجات</th>
+      <th style="padding:10px 8px;text-align:center;font-size:12px;width:70px">المنطقة</th>
+      <th style="padding:10px 8px;text-align:center;font-size:12px;width:55px">السعر</th>
+      <th style="padding:10px 8px;text-align:center;font-size:12px;width:75px">الحالة</th>
+      <th style="padding:10px 8px;text-align:center;font-size:12px;width:75px">التحصيل</th>
+    </table>
+  </thead>
+  <tbody>
+    ${clientRows}
+    <tr style="background:#E0F5EE">
+      <td colspan="3" style="padding:10px 8px;font-weight:900;font-size:13px;color:#0B6B4E;text-align:left">الإجمالي</td>
+      <td style="padding:10px 8px;text-align:center;font-weight:900;font-size:14px;color:#0B6B4E">${totalRev.toLocaleString()}</td>
+      <td colspan="2"></td>
+     </tr>
+  </tbody>
+</table>
+</div>
+<div style="margin:20px 12px 8px;padding:12px;background:#f5f5f5;border-radius:10px;font-size:11px;color:#888;display:flex;justify-content:space-between">
+  <span>ClearDust — نظام إدارة الزيارات</span>
+  <span>${dateStr}</span>
+</div>
+<button class="print-btn no-print" onclick="window.print()">🖨️ اطبع الآن</button>
+</body>
+</html>`;
+  const win=window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+}
+
+// NAVIGATION & UTILS
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el)el.classList.add('active');
+  if(id==='route')renderRoute();
+  if(id==='delegates')renderDelegates();
+  if(id==='cancelled')renderCancelled();
+  if(id==='inventory')renderInventory();
+}
+function closeOv(id){document.getElementById(id).classList.remove('open');}
+function toast(msg){
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
+}
+async function manualSync() {
+  // أولاً: حاول ترفع الطابور الأوفلاين
+  const qLen = OFFLINE_QUEUE.length;
+  if (qLen > 0) toast(`📤 جاري رفع ${qLen} عملية محفوظة أوفلاين...`);
+  await loadFromSheets();
+  renderHome(); filterC(); renderCancelled(); renderRoute(); renderDelegates(); renderArchive();
+  try{ renderInventory(); }catch(e){}
+  const remaining = OFFLINE_QUEUE.length;
+  if (remaining === 0 && qLen > 0) toast(`✅ تمت المزامنة — تم رفع ${qLen} عملية`);
+  else if (remaining > 0) toast(`⚠️ تمت المزامنة — ${remaining} عملية لا تزال في الطابور (تحقق من الاتصال)`);
+  else toast('✅ تمت المزامنة بنجاح');
+}
+
+// INIT
+window.addEventListener('DOMContentLoaded',()=>{
+  buildLogin();
+  document.querySelectorAll('.ov').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+});
+
+// ===== INVENTORY MODULE =====
+let COMPANY_STOCK = JSON.parse(localStorage.getItem('cd_stock_company')||'[]');
+const PROD_LABELS = {mop:'MOP ممسحة', mit:'MIT جوانتي', hd1:'HD1 شيش', hd2:'HD2 أسقف', m36:'MOP36 كبير'};
+
+function renderInventory(){
+  if(!document.getElementById('page-inventory')) return;
+  let companyHtml = '';
+  let companyTotal = 0;
+  COMPANY_STOCK.forEach(function(s,i){
+    companyTotal += Number(s.qty)||0;
+    companyHtml += `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f0f0f0">
+      <div><b>${s.name}</b> <span style="color:var(--md);font-size:11px">(${s.unit||''})</span></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-weight:800;font-size:15px">${s.qty}</span>
+        <button onclick="editStock(${i})" style="background:var(--bl);color:var(--b);border:none;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">تعديل</button>
+        <button onclick="deleteStock(${i})" style="background:var(--c);color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">حذف</button>
+      </div></div>`;
+  });
+  document.getElementById('companyStockList').innerHTML = companyHtml || '<div style="text-align:center;color:var(--md);padding:20px">لا توجد أصناف في المخزن</div>';
+  document.getElementById('companyTotal').textContent = 'إجمالي الأصناف: '+COMPANY_STOCK.length+' | إجمالي الكمية: '+companyTotal;
+
+  const clientsToScan = IS_ADMIN ? CLIENTS : CLIENTS.filter(c=>MY_REGIONS.includes(c.r));
+  let prodTotals = {mop:0, mit:0, hd1:0, hd2:0, m36:0};
+  let clientDetails = [];
+  clientsToScan.forEach(function(c){
+    let hasProd = false;
+    let row = {name:c.n, region:c.r};
+    ['mop','mit','hd1','hd2','m36'].forEach(function(k){
+      let val = c[k];
+      if(val){
+        let num = parseFloat(String(val).replace(/[^\d.]/g,''))||1;
+        prodTotals[k] += num;
+        row[k] = val;
+        hasProd = true;
+      }
+    });
+    if(hasProd) clientDetails.push(row);
+  });
+  let totalHtml = Object.entries(PROD_LABELS).map(function([k,label]){
+    if(!prodTotals[k]) return '';
+    return `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0">
+      <div style="font-weight:700">${label}</div>
+      <div style="font-weight:900;color:var(--b);font-size:15px">${prodTotals[k]}</div>
+    </div>`;
+  }).filter(Boolean).join('');
+  document.getElementById('clientStockTotal').innerHTML = totalHtml || '<div style="text-align:center;color:var(--md);padding:20px">لا توجد بضاعة مسجلة عند العملاء</div>';
+  let detailsEl = document.getElementById('clientStockDetails');
+  if(detailsEl){
+    let dHtml = clientDetails.map(function(c){
+      let prods = Object.entries(PROD_LABELS).filter(([k])=>c[k]).map(([k,l])=>`<span style="background:var(--gl);color:var(--g);font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700">${l}: ${c[k]}</span>`).join(' ');
+      return `<div style="padding:8px 0;border-bottom:1px solid #f0f0f0">
+        <div style="font-weight:700;font-size:13px">${c.name} <span style="font-size:10px;color:var(--md);font-weight:400">— ${c.region}</span></div>
+        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px">${prods}</div>
+      </div>`;
+    }).join('');
+    detailsEl.innerHTML = dHtml || '<div style="text-align:center;color:var(--md);padding:12px;font-size:12px">لا توجد تفاصيل</div>';
+  }
+}
+function openAddStock(){
+  document.getElementById('stockName').value='';
+  document.getElementById('stockQty').value='';
+  document.getElementById('stockUnit').value='';
+  document.getElementById('stockOv').classList.add('open');
+  document.getElementById('stockOv').dataset.editIdx = '';
+}
+function editStock(i){
+  const s = COMPANY_STOCK[i];
+  document.getElementById('stockName').value = s.name;
+  document.getElementById('stockQty').value = s.qty;
+  document.getElementById('stockUnit').value = s.unit||'';
+  document.getElementById('stockOv').classList.add('open');
+  document.getElementById('stockOv').dataset.editIdx = i;
+}
+function saveStock(){
+  const name = document.getElementById('stockName').value.trim();
+  const qty = Number(document.getElementById('stockQty').value);
+  const unit = document.getElementById('stockUnit').value.trim();
+  if(!name || !qty){toast('⚠️ اكمل البيانات');return;}
+  const editIdx = document.getElementById('stockOv').dataset.editIdx;
+  if(editIdx !== ''){
+    COMPANY_STOCK[+editIdx] = {name, qty, unit};
+    toast('✅ تم تعديل الصنف');
+  } else {
+    COMPANY_STOCK.push({name, qty, unit});
+    toast('✅ تمت الإضافة للمخزن');
+  }
+  localStorage.setItem('cd_stock_company', JSON.stringify(COMPANY_STOCK));
+  closeOv('stockOv');
+  renderInventory();
+}
+function deleteStock(i){
+  if(!confirm('حذف الصنف من مخزن الشركة؟'))return;
+  COMPANY_STOCK.splice(i,1);
+  localStorage.setItem('cd_stock_company', JSON.stringify(COMPANY_STOCK));
+  renderInventory();
+  toast('🗑️ تم الحذف');
+}
+window.addEventListener('load', function(){
+  const nav = document.querySelector('.nav');
+  if(nav && !document.querySelector('[data-page="inventory"]')){
+    const tab = document.createElement('div');
+    tab.className = 'ntab admin-only';
+    tab.setAttribute('data-page','inventory');
+    tab.onclick = function(){ showPage('inventory', this); };
+    tab.innerHTML = '<span class="ni">📦</span>المخزن';
+    nav.appendChild(tab);
+  }
+});
+</script>
+
+<!-- INVENTORY PAGE HTML -->
+<div class="page" id="page-inventory">
+  <div class="route-hd">
+    <div style="font-size:16px;font-weight:800">📦 إدارة المخزن</div>
+    <div style="font-size:12px;opacity:.9">تابع بضاعة الشركة والعملاء</div>
+  </div>
+  <div style="background:#fff;border-radius:var(--r);padding:14px;margin-bottom:12px;box-shadow:var(--sh)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-weight:800;font-size:14px">🏢 مخزن الشركة</div>
+      <button onclick="openAddStock()" style="background:var(--g);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-family:Cairo,sans-serif;font-size:12px;font-weight:700;cursor:pointer">+ إضافة صنف</button>
+    </div>
+    <div id="companyStockList"></div>
+    <div id="companyTotal" style="margin-top:10px;padding-top:10px;border-top:1px solid #eee;font-weight:800;color:var(--g);font-size:12px"></div>
+  </div>
+  <div style="background:#fff;border-radius:var(--r);padding:14px;margin-bottom:12px;box-shadow:var(--sh)">
+    <div style="font-weight:800;font-size:14px;margin-bottom:10px">👥 إجمالي البضاعة عند العملاء</div>
+    <div id="clientStockTotal"></div>
+  </div>
+  <div style="background:#fff;border-radius:var(--r);padding:14px;margin-bottom:12px;box-shadow:var(--sh)">
+    <div style="font-weight:800;font-size:14px;margin-bottom:10px">📋 تفاصيل البضاعة بالعميل</div>
+    <div id="clientStockDetails"></div>
+  </div>
+</div>
+<div class="ov" id="stockOv"><div class="modal">
+  <div class="mhd"><h3>إضافة / تعديل صنف</h3><button class="mclose" onclick="closeOv('stockOv')">✕</button></div>
+  <label class="flbl">اسم الصنف *</label>
+  <input id="stockName" class="finp" placeholder="مثال: سائل تنظيف">
+  <label class="flbl">الكمية *</label>
+  <input id="stockQty" class="finp" type="number" placeholder="0">
+  <label class="flbl">الوحدة</label>
+  <input id="stockUnit" class="finp" placeholder="كرتونة / لتر / قطعة">
+  <button class="save-btn" onclick="saveStock()">حفظ الصنف</button>
+</div></div>
+</body>
+</html>
